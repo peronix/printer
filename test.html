@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+</head>
+<body>
+<div>
+	<textarea id="command" style="width:80%;height:300px;"></textarea>
+</div>
+<div>
+	<button onclick="print()">Print</button>
+</div>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+<script type="text/javascript">
+	function print(){
+		var command = $("#command").val();
+		$.post("https://localhost:8888/cmd", {
+			printer: '0a43-0201',
+			command: command
+		});
+	}
+</script>
+</body>
+</html>

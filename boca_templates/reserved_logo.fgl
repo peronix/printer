@@ -1,0 +1,13 @@
+<PL1700>
+<RC50,50><F6>{title}
+<RC230,50><BX300,400>
+<RC320,1100><F3><QR5>{{number}}
+<RC230,500><F10>{line1}
+<RC290,500>{line2}
+<RC360,500>{line3}
+<RC450,500><F3>{name}
+<RC500,500><F9>{itemtype} # {number}
+<RL><RC550,1450><CTR525>~{name}~
+<RC15,1575><NL10><X2>*{number}*
+<RC550,1600><CTR525>~{number}~
+<p>
