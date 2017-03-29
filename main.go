@@ -8,6 +8,7 @@ import (
 	"crypto/x509/pkix"
 	"encoding/json"
 	"encoding/pem"
+	"flag"
 	"fmt"
 	"io"
 	"log"
@@ -22,7 +23,7 @@ import (
 )
 
 var (
-	port     = 8888
+	port     = flag.Int("port", 8888, "port")
 	certfile = "cert.pem"
 	keyfile  = "key.pem"
 )
@@ -79,20 +80,24 @@ func cmdHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	flag.Parse()
 	var err error
 	ctx, err := usb.NewContext()
 	if nil != err {
 		log.Printf("error opening usb context: %s", err)
+		time.Sleep(time.Second * 3)
+		return
+	}
+	err = findPrinters(ctx)
+	if nil != err {
+		log.Printf("error reading from usb context: %s", err)
+		ctx.Close()
+		time.Sleep(time.Second * 3)
 		return
 	}
 	ticker := time.NewTicker(5 * time.Second)
 	quit := make(chan struct{})
 	go func() {
-		err := findPrinters(ctx)
-		if nil != err {
-			log.Printf("error reading from usb context: %s", err)
-			return
-		}
 		for {
 			select {
 			case <-ticker.C:
@@ -109,6 +114,7 @@ func main() {
 			printer.Device.Close()
 		}
 		ctx.Close()
+		time.Sleep(time.Second * 3)
 	}()
 	_, err = tls.LoadX509KeyPair("./"+certfile, "./"+keyfile)
 	if err != nil {
@@ -126,8 +132,8 @@ func main() {
 
 	http.HandleFunc("/list", listHandler)
 	http.HandleFunc("/cmd", cmdHandler)
-	log.Printf("listening on port %v", port)
-	err = http.ListenAndServeTLS("localhost:8888", "./"+certfile, "./"+keyfile, nil)
+	log.Printf("listening on port %d", *port)
+	err = http.ListenAndServeTLS(fmt.Sprintf("localhost:%d", *port), "./"+certfile, "./"+keyfile, nil)
 	if err != nil {
 		log.Fatalf("ListenAndServeTLS: %s", err)
 	}
@@ -188,8 +194,6 @@ func generateCertKeyPair() error {
 
 	dir, err := os.Getwd()
 	if err != nil {
-		os.Remove(certfile)
-		os.Remove(keyfile)
 		return err
 	}
 
